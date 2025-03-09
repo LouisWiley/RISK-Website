@@ -1,0 +1,103 @@
+﻿@page "/submitpage"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <h3>Submit Bot Page</h3>
+        <div>
+            <p>Click the "Choose File(s)" button to upload your A.I</p>
+            <p> More information about how to connect foreign bots with R.I.S.K API</p>
+        </div>
+        <EditForm Model="bot" OnValidSubmit="HandleSubmit" class="form-container" >
+            <DataAnnotationsValidator />
+            <div>
+                <label>Bot Name:</label>
+                <InputText id="Name" @bind-Value="bot.Name" placeholder="ExampleBot"/>
+                <ValidationMessage For="@(() => bot.Name)" />
+
+            </div>
+            <div>
+                <InputFile OnChange="@LoadFiles"  />
+                @if (errors.Count > 0)
+                {
+                    <div class="alert alert-danger">
+                        @foreach (var error in errors)
+                        {
+                            <p>@error</p>
+                        }
+                    </div>
+                }
+
+                <input type="submit" disabled="@(notValidBot)">
+            </div>
+            <div>
+                @if (isBotSubmited)
+                {
+                    <p>Your bot has been submitted, You should find it in the "Find a Bot" tab.</p>
+                }
+
+            </div>
+
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <div class="text-center">
+            <h1>Not Authorized</h1>
+            <p>You must be logged in to view this page.</p>
+            <p>If you do not have an account. register, login, and try again.</p>
+        </div>
+    </NotAuthorized>
+
+</AuthorizeView>
+
+@code{
+    private class Bot
+    {
+        [Required(ErrorMessage = "You must name your bot")]
+        [Length(5,35, ErrorMessage = "Name must be between 5 and 35 characters")]
+        public string Name { get; set; } = string.Empty;
+
+        
+    }
+    private Bot bot = new Bot();
+
+    private List<string> AllowedFileTypes { get; set; } = new List<string> { ".cs" , ".png" };
+    private int MaxFileSize { get; set; } = 1024 * 300; // 300KB in bytes
+    private int MaxAllowedFiles { get; set; } = 1;
+    private List<string> errors = new();
+    private bool notValidBot = true;
+    private bool isBotSubmited = false;
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        errors.Clear();
+        if (e.FileCount > MaxAllowedFiles)
+        {
+            errors.Add($"You can only upload {MaxAllowedFiles} file");
+            return;
+        }
+        foreach (var file in e.GetMultipleFiles(MaxAllowedFiles))
+        {
+            if (file.Size > MaxFileSize)
+            {
+                errors.Add($"The file {file.Name} is too large. Max file size is {MaxFileSize / 1024}KB"); 
+            }
+            if (!AllowedFileTypes.Contains(Path.GetExtension(file.Name)))   //Checks if the correct extension
+            {
+                errors.Add($"The file {file.Name} is not allowed. Allowed file types are {string.Join(", ", AllowedFileTypes)}");
+            }
+        }
+        if (errors.Count == 0)
+        {
+            notValidBot = false;
+
+        }
+
+    }
+    private void HandleSubmit()
+    {
+        isBotSubmited = true;
+    }
+}

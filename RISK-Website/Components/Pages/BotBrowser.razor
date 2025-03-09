@@ -1,0 +1,136 @@
+﻿@page "/botfinder"
+@rendermode InteractiveServer
+
+<AuthorizeView>
+    <Authorized>
+<h3>Bot Finder</h3>
+
+<p>Browse through our catalog of bots capable of playing R.I.S.K</p>
+<b> WARNING: Download at your own risk (no pun intended)</b>
+<div class="input-group mb-3">
+    <select @bind="searchFilter">
+        <option value="Name">Bot Name</option>
+        <option value="Creator">Created By</option>
+    </select>
+    <input type="text" @bind="searchTerm" placeholder="Search..." style="200px"/>
+    <button class="btn btn-primary" @onclick="SearchBots">Search</button>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Bot Name</th>
+            <th>Created By</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var bot in PagedBots)
+        {
+            <tr @onclick="() => ToggleExpand(bot)" style="cursor:pointer;">
+                <td>@bot.Name</td>
+                <td>@bot.Creator</td>
+                <td>
+                    <a href="@bot.DownloadUrl" download>
+                        <span class="btn btn-primary">Download</span>
+                    </a>
+                </td>
+            </tr>
+            @if (bot.IsExpanded)
+            {
+                <tr>
+                    <td colspan="3">
+                        <strong>More details about @bot.Name...</strong>
+                        <p>Additional info could be placed here.</p>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<div class="pagination">
+    <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@(!CanGoToPreviousPage)">Previous</button>
+    <span>Page @currentPage of @totalPages</span>
+    <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanGoToNextPage)">Next</button>
+</div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="text-center">
+        <h1>Not Authorized</h1>
+        <p>You must be logged in to view this page.</p>
+        <p>If you do not have an account. register, login, and try again.</p>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    public class BotSubmission
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Creator { get; set; } = string.Empty;
+        public string DownloadUrl { get; set; } = string.Empty;
+        public bool IsExpanded { get; set; } = false;
+    }
+
+    private List<BotSubmission> botSubmissions = new()  
+       {  
+           new BotSubmission { Name = "BotA", Creator = "Alice", DownloadUrl = "/downloads/botA.zip" },  
+           new BotSubmission { Name = "BotB", Creator = "Bob", DownloadUrl = "/downloads/botB.zip" },  
+           new BotSubmission { Name = "BotC", Creator = "Charlie", DownloadUrl = "/downloads/botC.zip" },  
+           new BotSubmission { Name = "BotD", Creator = "David", DownloadUrl = "/downloads/botD.zip" },  
+           new BotSubmission { Name = "BotE", Creator = "Eve", DownloadUrl = "/downloads/botE.zip" },  
+           new BotSubmission { Name = "BotF", Creator = "Frank", DownloadUrl = "/downloads/botF.zip" },  
+           new BotSubmission { Name = "BotG", Creator = "Grace", DownloadUrl = "/downloads/botG.zip" },  
+           new BotSubmission { Name = "BotH", Creator = "Hank", DownloadUrl = "/downloads/botH.zip" },  
+           new BotSubmission { Name = "BotI", Creator = "Ivy", DownloadUrl = "/downloads/botI.zip" },  
+           new BotSubmission { Name = "BotJ", Creator = "Jack", DownloadUrl = "/downloads/botJ.zip" },  
+           new BotSubmission { Name = "BotK", Creator = "Karen", DownloadUrl = "/downloads/botK.zip" },  
+           new BotSubmission { Name = "BotL", Creator = "Leo", DownloadUrl = "/downloads/botL.zip" },  
+       };
+
+    private string searchTerm = string.Empty;
+    private string searchFilter = "Name";
+    private int currentPage = 1;
+    private int pageSize = 10;
+
+    private IEnumerable<BotSubmission> FilteredBots => botSubmissions
+        .Where(bot => searchFilter == "Name" 
+            ? bot.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) 
+            : bot.Creator.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    private IEnumerable<BotSubmission> PagedBots => FilteredBots
+        .Skip((currentPage - 1) * pageSize)
+        .Take(pageSize);
+
+    private int totalPages => (int)Math.Ceiling(FilteredBots.Count() / (double)pageSize);
+
+    private bool CanGoToPreviousPage => currentPage > 1;
+    private bool CanGoToNextPage => currentPage < totalPages;
+
+    private void ToggleExpand(BotSubmission bot)
+    {
+        bot.IsExpanded = !bot.IsExpanded;
+    }
+
+    private void SearchBots()
+    {
+        currentPage = 1; // Reset to first page on new search
+    }
+
+    private void PreviousPage()
+    {
+        if (CanGoToPreviousPage)
+        {
+            currentPage--;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CanGoToNextPage)
+        {
+            currentPage++;
+        }
+    }
+}
