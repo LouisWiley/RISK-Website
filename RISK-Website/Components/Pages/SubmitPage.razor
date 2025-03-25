@@ -2,6 +2,12 @@
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using RISK_Website.Data
+@using System.IO.Compression
+
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <AuthorizeView Context="authContext">
     <Authorized>
@@ -35,7 +41,7 @@
             <div>
                 @if (isBotSubmited)
                 {
-                    <p>Your bot has been submitted, You should find it in the "Find a Bot" tab.</p>
+                    <p>Your bot has been submitted, You should find it in the "Find a Bot" tab. </p>
                 }
 
             </div>
@@ -53,26 +59,28 @@
 </AuthorizeView>
 
 @code{
+
     private class Bot
     {
         [Required(ErrorMessage = "You must name your bot")]
         [Length(5,35, ErrorMessage = "Name must be between 5 and 35 characters")]
         public string Name { get; set; } = string.Empty;
-
-        
+        public string CreatedBy { get; set; } 
     }
     private Bot bot = new Bot();
 
-    private List<string> AllowedFileTypes { get; set; } = new List<string> { ".cs" , ".png" };
+    private List<string> AllowedFileTypes { get; set; } = new List<string> { ".cs", ".png", ".vbs", ".fs" };   // Allowed file types
     private int MaxFileSize { get; set; } = 1024 * 300; // 300KB in bytes
     private int MaxAllowedFiles { get; set; } = 1;
     private List<string> errors = new();
     private bool notValidBot = true;
     private bool isBotSubmited = false;
+    private List<IBrowserFile> uploadedFiles = new();
 
-    private async Task LoadFiles(InputFileChangeEventArgs e)
+    public async Task LoadFiles(InputFileChangeEventArgs e)
     {
         errors.Clear();
+        uploadedFiles.Clear();
         if (e.FileCount > MaxAllowedFiles)
         {
             errors.Add($"You can only upload {MaxAllowedFiles} file");
@@ -88,16 +96,56 @@
             {
                 errors.Add($"The file {file.Name} is not allowed. Allowed file types are {string.Join(", ", AllowedFileTypes)}");
             }
+            uploadedFiles.Add(file);
         }
         if (errors.Count == 0)
         {
             notValidBot = false;
+        }
+    }
 
+    private async Task HandleSubmit()
+    {
+        errors.Clear();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+        bot.CreatedBy = user.Email.Split('@')[0];
+
+        if (await IsBotNameDuplicate(bot.Name, bot.CreatedBy))
+        {
+            errors.Add("A bot with this name already exists. Please choose a different name.");
+            return;
+            
         }
 
-    }
-    private void HandleSubmit()
-    {
+        if (uploadedFiles.Count > 0)  
+        {  // This uploads the files to the server
+            var zipFilePath = Path.Combine("wwwroot", "uploads", $"{bot.CreatedBy}", $"{bot.Name}.zip");  
+            Directory.CreateDirectory(Path.GetDirectoryName(zipFilePath)); //Creates the directory if it does not exist
+
+            using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))  
+            {  
+                foreach (var file in uploadedFiles)  
+                {
+                    var entry = zipArchive.CreateEntry(file.Name);
+                    using (var entryStream = entry.Open())
+                    using (var fileStream = file.OpenReadStream())
+                    {
+                        await fileStream.CopyToAsync(entryStream);
+                    }
+                }  
+            }  
+        }
+
         isBotSubmited = true;
+        notValidBot = true;
+    }
+
+    private async Task<bool> IsBotNameDuplicate(string botName, string createdBy)
+    {
+        
+        var botDirectory = Path.Combine("wwwroot", "uploads", createdBy);
+        var botFilePath = Path.Combine(botDirectory, $"{botName}.zip");
+        return File.Exists(botFilePath);
     }
 }

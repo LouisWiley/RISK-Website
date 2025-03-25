@@ -5,4 +5,5 @@ namespace RISK_Website.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
+    public DbSet<Bot> Bots { get; internal set; }
 }
