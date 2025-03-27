@@ -3,63 +3,63 @@
 
 <AuthorizeView>
     <Authorized>
-<h3>Bot Finder</h3>
+        <h3>Bot Finder</h3>
 
-<p>Browse through our catalog of bots capable of playing R.I.S.K</p>
-<b> WARNING: Download at your own risk (no pun intended)</b>
-<div class="input-group mb-3">
-    <select @bind="searchFilter">
-        <option value="Name">Bot Name</option>
-        <option value="Creator">Created By</option>
-    </select>
-    <input type="text" @bind="searchTerm" placeholder="Search..." style="200px"/>
-    <button class="btn btn-primary" @onclick="SearchBots">Search</button>
-</div>
+        <p>Browse through our catalog of bots capable of playing R.I.S.K</p>
+        <b> WARNING: Download at your own risk (no pun intended)</b>
+        <div class="input-group mb-3">
+            <select @bind="searchFilter">
+                <option value="Name">Bot Name</option>
+                <option value="Creator">Created By</option>
+            </select>
+            <input type="text" @bind="searchTerm" placeholder="Search..." style="200px"/>
+            <button class="btn btn-primary" @onclick="SearchBots">Search</button>
+        </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Bot Name</th>
-            <th>Created By</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var bot in PagedBots)
-        {
-            <tr @onclick="() => ToggleExpand(bot)" style="cursor:pointer;">
-                <td>@bot.Name</td>
-                <td>@bot.Creator</td>
-                <td>
-                    <a href="@bot.DownloadUrl" download>
-                        <span class="btn btn-primary">Download</span>
-                    </a>
-                </td>
-            </tr>
-            @if (bot.IsExpanded)
-            {
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td colspan="3">
-                        <strong>More details about @bot.Name...</strong>
-                        <p>Additional info could be placed here.</p>
-                    </td>
+                    <th>Bot Name</th>
+                    <th>Created By</th>
+                    <th>Actions</th>
                 </tr>
-            }
-        }
-    </tbody>
-</table>
+            </thead>
+            <tbody>
+                @foreach (var bot in PagedBots)
+                {
+                    <tr @onclick="() => ToggleExpand(bot)" style="cursor:pointer;">
+                        <td>@bot.Name</td>
+                        <td>@bot.Creator</td>
+                        <td>
+                            <a href="@bot.DownloadUrl" download>
+                                <span class="btn btn-primary">Download</span>
+                            </a>
+                        </td>
+                    </tr>
+                    @if (bot.IsExpanded)
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <strong>More details about @bot.Name...</strong>
+                                <p>Additional info could be placed here.</p>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
 
-<div class="pagination">
-    <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@(!CanGoToPreviousPage)">Previous</button>
-    <span>Page @currentPage of @totalPages</span>
-    <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanGoToNextPage)">Next</button>
-</div>
+        <div class="pagination">
+            <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@(!CanGoToPreviousPage)">Previous</button>
+            <span>Page @currentPage of @totalPages</span>
+            <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanGoToNextPage)">Next</button>
+        </div>
     </Authorized>
     <NotAuthorized>
         <div class="text-center">
-        <h1>Not Authorized</h1>
-        <p>You must be logged in to view this page.</p>
-        <p>If you do not have an account. register, login, and try again.</p>
+            <h1>Not Authorized</h1>
+            <p>You must be logged in to view this page.</p>
+            <p>If you do not have an account. register, login, and try again.</p>
         </div>
     </NotAuthorized>
 </AuthorizeView>
@@ -73,21 +73,33 @@
         public bool IsExpanded { get; set; } = false;
     }
 
-    private List<BotSubmission> botSubmissions = new()  
-       {  
-           new BotSubmission { Name = "BotA", Creator = "Alice", DownloadUrl = "/downloads/botA.zip" },  
-           new BotSubmission { Name = "BotB", Creator = "Bob", DownloadUrl = "/downloads/botB.zip" },  
-           new BotSubmission { Name = "BotC", Creator = "Charlie", DownloadUrl = "/downloads/botC.zip" },  
-           new BotSubmission { Name = "BotD", Creator = "David", DownloadUrl = "/downloads/botD.zip" },  
-           new BotSubmission { Name = "BotE", Creator = "Eve", DownloadUrl = "/downloads/botE.zip" },  
-           new BotSubmission { Name = "BotF", Creator = "Frank", DownloadUrl = "/downloads/botF.zip" },  
-           new BotSubmission { Name = "BotG", Creator = "Grace", DownloadUrl = "/downloads/botG.zip" },  
-           new BotSubmission { Name = "BotH", Creator = "Hank", DownloadUrl = "/downloads/botH.zip" },  
-           new BotSubmission { Name = "BotI", Creator = "Ivy", DownloadUrl = "/downloads/botI.zip" },  
-           new BotSubmission { Name = "BotJ", Creator = "Jack", DownloadUrl = "/downloads/botJ.zip" },  
-           new BotSubmission { Name = "BotK", Creator = "Karen", DownloadUrl = "/downloads/botK.zip" },  
-           new BotSubmission { Name = "BotL", Creator = "Leo", DownloadUrl = "/downloads/botL.zip" },  
-       };
+    private List<BotSubmission> botSubmissions = new();
+    protected override void OnInitialized()
+    {
+        LoadBotsFromDirectory();
+    }
+
+    private void LoadBotsFromDirectory()
+    {
+        var botFiles = Directory.GetFiles(Path.Combine("wwwroot", "uploads"), "*.zip", SearchOption.AllDirectories);
+        foreach (var file in botFiles)
+        {
+            var relativePath = Path.GetRelativePath("wwwroot", file);
+            var parts = relativePath.Split(Path.DirectorySeparatorChar);
+            if (parts.Length >= 3)
+            {
+                var creator = parts[1];
+                var botName = Path.GetFileNameWithoutExtension(parts[2]);
+                botSubmissions.Add(new BotSubmission
+                    {
+                        Name = botName,
+                        Creator = creator,
+                        DownloadUrl = $"/{relativePath.Replace(Path.DirectorySeparatorChar, '/')}"
+                    });
+            }
+        }
+    }
+
 
     private string searchTerm = string.Empty;
     private string searchFilter = "Name";

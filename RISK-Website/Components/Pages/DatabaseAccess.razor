@@ -1,0 +1,101 @@
+﻿@page "/DatabaseAccess"
+@rendermode InteractiveServer
+@using System.Security.Cryptography;
+@using System.Text;
+@using System.IO.Compression;
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<h3>Database Access</h3>
+@if (!isAuthenticated)
+{
+    <div>
+
+        <label for="password">Enter Password:</label>
+        <input type="password" id="password" @bind="password" />
+        <button @onclick="CheckPassword">Submit</button>
+    </div>
+}
+@if (isAuthenticated)
+{
+
+    //logic for zipping up bot data
+
+    <p>Welcome to the database</p>
+
+    <button @onclick="LoadDatabase">Load Database</button>
+    @if (isLoaded)
+    {
+        <p>Database is loaded and ready for download</p>
+        <button @onclick="DownloadDatabase">Download Database</button>
+    }
+}
+@if (isIncorrectPassword)
+{
+    <p>Wrong Password</p>
+}
+
+@code {
+    private string password;
+    private readonly string hashedPassword = "4a16b336f0383dbf6ab4f2ec39f21cb310d7f6ec736267330a03de70b1e4a699";
+    private bool isAuthenticated = false;
+    private bool isIncorrectPassword = false;
+    private bool isLoaded = false;
+
+    private void CheckPassword()
+    {
+        if (VerifyPassword(password))
+        {
+            isIncorrectPassword = false;
+            isAuthenticated = true;
+        }
+        else
+        {
+            isIncorrectPassword = true;
+        }
+    }
+
+    private bool VerifyPassword(string inputPassword)
+    {
+        if (inputPassword == null)
+        {
+            return false;
+        }
+        using (var sha256 = SHA256.Create())
+        {
+            var inputBytes = Encoding.UTF8.GetBytes(inputPassword);
+            var hashBytes = sha256.ComputeHash(inputBytes);
+            var inputHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+            return inputHash == hashedPassword;
+        }
+    }
+
+    private async Task LoadDatabase()
+    {
+        try
+        {
+            var zipPath = Path.Combine("wwwroot", "uploads.zip");
+            if (File.Exists(zipPath))
+            {
+                File.Delete(zipPath);
+            }
+
+            ZipFile.CreateFromDirectory(Path.Combine("wwwroot", "uploads"), zipPath);
+
+            isLoaded = true;
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadDatabase()
+    {
+        var zipPath = Path.Combine("wwwroot", "uploads.zip");
+        var relativePath = zipPath.Replace("wwwroot", "");
+        var uri = NavigationManager.ToAbsoluteUri(relativePath);
+        await JS.InvokeVoidAsync("open", uri.ToString(), "_blank");
+    }
+}
