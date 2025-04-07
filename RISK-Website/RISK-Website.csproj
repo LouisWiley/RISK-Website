@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <Folder Include="UserBots\" />
-    <Folder Include="wwwroot\uploads\louiswiley474\" />
+    <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
 
 </Project>
