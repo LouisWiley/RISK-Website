@@ -25,8 +25,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthentication()
    .AddGoogle(options =>
    {
-       IConfigurationSection googleAuthNSection =
-       config.GetSection("Authentication:Google");
+       IConfigurationSection googleAuthNSection = config.GetSection("Authentication:Google");
        options.ClientId = googleAuthNSection["ClientId"];
        options.ClientSecret = googleAuthNSection["ClientSecret"];
    });
