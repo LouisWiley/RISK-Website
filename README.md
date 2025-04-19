@@ -56,7 +56,14 @@ This project was created for our IUS Capstone course.
     * MainLayout.razor : 
     * NavMenu.razor : 
   * Pages
-    
+    * About.razor
+    * BotBrowser.razor
+    * DatabaseAccess.razor
+    * Error.razor
+    * Home.razor
+    * SoftwareDownload.razor
+    * SubmitPage.razor
+
   * App.razor
   * Routes.razor
   * _Imports.razor
