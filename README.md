@@ -26,8 +26,27 @@ This project was created for our IUS Capstone course.
         * SetPassword.razor
         * TwoFactorAuthentication.razor
         * _Imports. razor
+      * AccessDenied.razor
+      * ConfirmEmail.razor
+      * ConfirmEmailChange.razor
+      * ExternalLogin.razor
+      * ForgotPassword.razor
+      * ForgotPasswordConfirmation.razor
+      * InvalidPasswordReset.razor
+      * InvalidUser.razor
+      * Lockout.razor
+      * Login.razor
+      * LoginWith2fa.razor
+      * LoginWithRecoveryCode.razor
+      * Register.razor
     * Shared
-      * EXAMPLE 1
+      * AccountLayout.razor
+      * ExternalLoginPicker.razor
+      * ManageLayout.razor
+      * ManageNavMenu.razor
+      * RedirectToLogin.razor
+      * ShowRecoveryCodes.razor
+      * StatusMessage.razor
     * IdentityComponentsEndpointRouteBuilderExtensions.cs
     * IdentityNoOpEmailSender.cs
     * IdentityRedirectManager.cs
