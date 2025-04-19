@@ -9,4 +9,37 @@ This project was created for our IUS Capstone course.
 * Google API
 
 ## Project Structure
-
+* Components
+  * Account
+    * Pages
+      * Manage
+        * ChangePassword.razor
+        * DeletePersonalData.razor
+        * Disable2fa.razor
+        * Email.razor
+        * EnableAuthenticator.razor
+        * ExternalLogins.razor
+        * GenerateRecoveryCodes.razor
+        * Index.razor
+        * PersonalData.razor
+        * ResetAuthenticator.razor
+        * SetPassword.razor
+        * TwoFactorAuthentication.razor
+        * _Imports. razor
+    * Shared
+      * EXAMPLE 1
+    * IdentityComponentsEndpointRouteBuilderExtensions.cs
+    * IdentityNoOpEmailSender.cs
+    * IdentityRedirectManager.cs
+    * IdentityRevalidatingAuthenticationStateProvider.cs
+    * IdentityUserAccessor.cs
+  * Layout
+    * MainLayout.razor : 
+    * NavMenu.razor : 
+  * Pages
+    
+  * App.razor
+  * Routes.razor
+  * _Imports.razor
+* Data
+* Properties
