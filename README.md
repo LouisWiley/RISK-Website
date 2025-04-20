@@ -74,3 +74,9 @@ This project was created for our IUS Capstone course.
   * launchSettings.json - Controls how the app is started in dev 
   * serviceDependencies.json - external services 
   * serviceDependencies.local.json - external services 
+
+## Creating bots
+You can create bots using any of the ASP.NET programming languages( F#, C#, Visual Basic Script).
+
+
+
